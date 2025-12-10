@@ -1,0 +1,19 @@
+{
+  "name": "public-notes-app",
+  "version": "1.0.0",
+  "description": "A simple public notes wall with daily reset",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "purge": "node src/purge.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.0.0",
+    "express": "^4.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
+

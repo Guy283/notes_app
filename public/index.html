@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Public Notes Wall</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Public Notes Wall</h1>
+    <p class="subtitle">
+      Leave a note for anyone to see. All notes are wiped every day at 12:00.
+    </p>
+
+    <section class="form-section">
+      <h2>Add a Note</h2>
+      <form id="noteForm">
+        <input
+          type="text"
+          id="author"
+          name="author"
+          placeholder="Your name (optional)"
+          maxlength="50"
+        />
+        <textarea
+          id="content"
+          name="content"
+          placeholder="Write something nice..."
+          maxlength="500"
+          required
+        ></textarea>
+        <button type="submit">Post Note</button>
+        <p id="formMessage" class="message"></p>
+      </form>
+    </section>
+
+    <section class="notes-section">
+      <h2>Latest Notes</h2>
+      <ul id="notesList"></ul>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
+
