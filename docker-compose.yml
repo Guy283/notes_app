@@ -4,10 +4,8 @@ services:
   app:
     build: .
     container_name: notes-app
-    ports:
-      - "3000:3000"
     environment:
-      - ADMIN_PASSWORD=changeme123
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - TZ=Asia/Jerusalem
     volumes:
       - db_data:/app/data
@@ -24,5 +22,28 @@ services:
       - db_data:/app/data
     restart: unless-stopped
 
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    depends_on:
+      - app
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - ./nginx:/etc/nginx
+
+
 volumes:
   db_data:
+  certbot-etc:
+  certbot-var:
