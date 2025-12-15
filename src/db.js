@@ -1,57 +1,78 @@
-// src/db.js
-const Database = require("better-sqlite3");
-const path = require("path");
 const fs = require("fs");
+const path = require("path");
 
-const dbDir = path.join(__dirname, "..", "data");
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+// Path to notes.json inside /data
+const DB_PATH = path.join(__dirname, "..", "data", "notes.json");
+
+// Ensure /data folder exists
+const DATA_DIR = path.join(__dirname, "..", "data");
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const dbPath = path.join(dbDir, "notes.db");
-const db = new Database(dbPath);
-
-// Create table if it doesn't exist
-db.exec(`
-  CREATE TABLE IF NOT EXISTS notes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    content TEXT NOT NULL,
-    author TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-`);
-
-function getNotes(limit = 100) {
-  const stmt = db.prepare(`
-    SELECT id, content, author, created_at
-    FROM notes
-    ORDER BY created_at DESC
-    LIMIT ?
-  `);
-  return stmt.all(limit);
+// Ensure notes.json exists
+if (!fs.existsSync(DB_PATH)) {
+  fs.writeFileSync(DB_PATH, "[]", "utf-8");
 }
 
-function addNote(content, author) {
-  const stmt = db.prepare(`
-    INSERT INTO notes (content, author)
-    VALUES (?, ?)
-  `);
-  const info = stmt.run(content, author || null);
-  return {
-    id: info.lastInsertRowid,
+// Load notes from JSON
+function loadNotes() {
+  try {
+    const raw = fs.readFileSync(DB_PATH, "utf-8");
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error("Error reading notes.json:", err);
+    return [];
+  }
+}
+
+// Save notes to JSON
+function saveNotes(notes) {
+  try {
+    fs.writeFileSync(DB_PATH, JSON.stringify(notes, null, 2));
+  } catch (err) {
+    console.error("Error writing notes.json:", err);
+  }
+}
+
+// Get latest N notes (default: 200)
+function getNotes(limit = 200) {
+  const notes = loadNotes();
+  return notes.slice(-limit); // last N notes
+}
+
+// Add a new note
+function addNote(content, author = "") {
+  const notes = loadNotes();
+
+  const newNote = {
+    id: Date.now(),
     content,
-    author: author || null,
+    author,
     created_at: new Date().toISOString()
   };
+
+  notes.push(newNote);
+  saveNotes(notes);
+  return newNote;
 }
 
+// Delete all notes
 function deleteAllNotes() {
-  const stmt = db.prepare(`DELETE FROM notes`);
-  stmt.run();
+  saveNotes([]);
+}
+
+function deleteNoteById(id) {
+  const notes = loadNotes();
+  const filtered = notes.filter(n => n.id !== Number(id));
+  saveNotes(filtered);
+  return true;
 }
 
 module.exports = {
   getNotes,
   addNote,
-  deleteAllNotes
+  deleteAllNotes,
+  deleteNoteById
 };
+

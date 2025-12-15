@@ -1,6 +1,8 @@
-// src/purge.js
 const { deleteAllNotes } = require("./db");
 
-console.log("Purging all notes...");
-deleteAllNotes();
-console.log("All notes deleted successfully.");
+try {
+  deleteAllNotes();
+  console.log(`[PURGE] All notes deleted at ${new Date().toISOString()}`);
+} catch (err) {
+  console.error("[PURGE] Error purging notes:", err);
+}

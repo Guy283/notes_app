@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <style>
+    body { 
+      font-family: Arial; 
+      max-width: 600px; 
+      margin: 40px auto; 
+    }
+    input[type="password"] {
+      padding: 10px; 
+      width: 100%; 
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 15px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .note {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Admin Panel</h2>
+
+<input type="password" id="password" placeholder="Enter admin password" />
+
+<button id="loadBtn">Load Notes</button>
+<button id="clearBtn" style="background:#c33;color:white">Delete ALL Notes</button>
+
+<div id="notes"></div>
+
+<script>
+  const passwordInput = document.getElementById("password");
+  const notesDiv = document.getElementById("notes");
+
+  async function loadNotes() {
+    const res = await fetch("/api/admin/notes", {
+      headers: { "x-admin-password": passwordInput.value }
+    });
+
+    const data = await res.json();
+    notesDiv.innerHTML = "";
+
+    if (!data.success) {
+      notesDiv.innerHTML = "<p>Wrong password</p>";
+      return;
+    }
+
+    data.notes.forEach(note => {
+      const div = document.createElement("div");
+      div.className = "note";
+      div.innerHTML = `
+        <p><b>ID:</b> ${note.id}</p>
+        <p><b>Author:</b> ${note.author || "(none)"}</p>
+        <p>${note.content}</p>
+        <button onclick="deleteNote(${note.id})">Delete</button>
+      `;
+      notesDiv.appendChild(div);
+    });
+  }
+
+  async function deleteNote(id) {
+    const res = await fetch("/api/admin/notes/" + id, {
+      method: "DELETE",
+      headers: { "x-admin-password": passwordInput.value }
+    });
+    loadNotes();
+  }
+
+  async function clearNotes() {
+    const res = await fetch("/api/admin/clear", {
+      method: "DELETE",
+      headers: { "x-admin-password": passwordInput.value }
+    });
+    loadNotes();
+  }
+
+  document.getElementById("loadBtn").onclick = loadNotes;
+  document.getElementById("clearBtn").onclick = clearNotes;
+</script>
+
+</body>
+</html>

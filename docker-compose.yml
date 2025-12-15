@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: notes-app
+    ports:
+      - "3000:3000"
+    environment:
+      - ADMIN_PASSWORD=changeme123
+      - TZ=Asia/Jerusalem
+    volumes:
+      - db_data:/app/data
+    restart: unless-stopped
+
+  cron:
+    build:
+      context: .
+      dockerfile: cron/Dockerfile
+    container_name: notes-cron
+    environment:
+      - TZ=Asia/Jerusalem
+    volumes:
+      - db_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  db_data:
