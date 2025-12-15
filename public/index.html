@@ -15,6 +15,7 @@
 
     <section class="form-section">
       <h2>Add a Note</h2>
+
       <form id="noteForm">
         <input
           type="text"
@@ -23,6 +24,7 @@
           placeholder="Your name (optional)"
           maxlength="50"
         />
+
         <textarea
           id="content"
           name="content"
@@ -30,7 +32,12 @@
           maxlength="500"
           required
         ></textarea>
-        <button type="submit">Post Note</button>
+
+        <div class="form-actions">
+          <button type="submit">Post Note</button>
+          <a href="/admin" class="admin-button">Admin</a>
+        </div>
+
         <p id="formMessage" class="message"></p>
       </form>
     </section>
@@ -44,4 +51,3 @@
   <script src="/app.js"></script>
 </body>
 </html>
-

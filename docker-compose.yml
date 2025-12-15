@@ -29,18 +29,23 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/www:/var/www/certbot
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-      - ./nginx/www:/var/www/certbot
     depends_on:
       - app
 
   certbot:
     image: certbot/certbot
     volumes:
+      - ./nginx/www:/var/www/certbot
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-      - ./nginx:/etc/nginx
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
 
 
 volumes:

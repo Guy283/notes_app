@@ -67,8 +67,15 @@ textarea {
   min-height: 80px;
 }
 
+/* ---------- Buttons ---------- */
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 button {
-  align-self: flex-start;
   padding: 8px 16px;
   border-radius: 999px;
   border: none;
@@ -90,6 +97,24 @@ button:active {
   box-shadow: none;
 }
 
+.admin-button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: transparent;
+  color: #9ca3af;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.08s ease, color 0.08s ease;
+}
+
+.admin-button:hover {
+  background: #020617;
+  color: #e5e7eb;
+}
+
+/* ---------- Messages ---------- */
+
 .message {
   min-height: 18px;
   font-size: 0.9rem;
@@ -102,6 +127,8 @@ button:active {
 .message.success {
   color: #34d399;
 }
+
+/* ---------- Notes ---------- */
 
 .notes-section ul {
   list-style: none;
@@ -146,6 +173,8 @@ button:active {
   font-style: italic;
 }
 
+/* ---------- Mobile ---------- */
+
 @media (max-width: 600px) {
   .container {
     padding: 16px 12px 20px;
@@ -155,4 +184,3 @@ button:active {
     font-size: 1.6rem;
   }
 }
-
