@@ -81,19 +81,54 @@ const perDayLimiter = rateLimit({
 /* -------------------------
    Admin password middleware
 ------------------------- */
-function requireAdmin(req, res, next) {
-  const password = req.headers["x-admin-password"];
+const ADMIN_MAX_ATTEMPTS = 5;
+const ADMIN_WINDOW_SECONDS = 60 * 60; // 1 hour
 
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({
+async function recordAdminFailure(ip) {
+  const key = `admin:fail:${ip}`;
+  const attempts = await redisClient.incr(key);
+
+  if (attempts === 1) {
+    await redisClient.expire(key, ADMIN_WINDOW_SECONDS);
+  }
+
+  return attempts;
+}
+
+async function isAdminLocked(ip) {
+  const attempts = await redisClient.get(`admin:fail:${ip}`);
+  return attempts && Number(attempts) >= ADMIN_MAX_ATTEMPTS;
+}
+
+
+async function requireAdmin(req, res, next) {
+  const ip = req.ip;
+
+  if (await isAdminLocked(ip)) {
+    return res.status(429).json({
       success: false,
-      error: "Unauthorized",
-      message: "Admin password is missing or incorrect.",
+      message: "Too many incorrect attempts. Try again in 1 hour.",
     });
   }
 
+  const password = req.headers["x-admin-password"];
+
+  if (!password || password !== process.env.ADMIN_PASSWORD) {
+    const attempts = await recordAdminFailure(ip);
+
+    return res.status(401).json({
+      success: false,
+      message: `Wrong admin password. Attempts left: ${Math.max(
+        0,
+        ADMIN_MAX_ATTEMPTS - attempts
+      )}`,
+    });
+  }
+
+  // Correct password → allow immediately
   next();
 }
+
 
 /* -------------------------
    Public API

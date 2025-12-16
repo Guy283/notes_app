@@ -1,91 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Admin Panel</title>
-  <style>
-    body { 
-      font-family: Arial; 
-      max-width: 600px; 
-      margin: 40px auto; 
-    }
-    input[type="password"] {
-      padding: 10px; 
-      width: 100%; 
-      margin-bottom: 20px;
-    }
-    button {
-      padding: 10px 15px;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
-    .note {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
+
 <body>
+  <div class="container">
+    <button onclick="window.location='/'" style="margin-bottom:16px">
+      ← Back
+    </button>
 
-<h2>Admin Panel</h2>
+    <h1>Admin Panel</h1>
+    <p class="subtitle">Manage notes</p>
 
-<input type="password" id="password" placeholder="Enter admin password" />
+    <input
+      type="password"
+      id="password"
+      placeholder="Admin password"
+      style="margin-bottom:12px"
+    />
 
-<button id="loadBtn">Load Notes</button>
-<button id="clearBtn" style="background:#c33;color:white">Delete ALL Notes</button>
+    <div style="display:flex; gap:10px; margin-bottom:12px">
+      <button id="loadBtn">Load Notes</button>
+      <button id="clearBtn" style="background:#dc2626">
+        Delete ALL
+      </button>
+    </div>
 
-<div id="notes"></div>
+    <p id="message" class="message"></p>
 
-<script>
-  const passwordInput = document.getElementById("password");
-  const notesDiv = document.getElementById("notes");
+    <div id="notes"></div>
+  </div>
 
-  async function loadNotes() {
-    const res = await fetch("/api/admin/notes", {
-      headers: { "x-admin-password": passwordInput.value }
-    });
+  <script>
+    const passwordInput = document.getElementById("password");
+    const notesDiv = document.getElementById("notes");
+    const messageEl = document.getElementById("message");
 
-    const data = await res.json();
-    notesDiv.innerHTML = "";
-
-    if (!data.success) {
-      notesDiv.innerHTML = "<p>Wrong password</p>";
-      return;
+    function showMessage(text, type = "success") {
+      messageEl.textContent = text;
+      messageEl.className = "message " + type;
     }
 
-    data.notes.forEach(note => {
-      const div = document.createElement("div");
-      div.className = "note";
-      div.innerHTML = `
-        <p><b>ID:</b> ${note.id}</p>
-        <p><b>Author:</b> ${note.author || "(none)"}</p>
-        <p>${note.content}</p>
-        <button onclick="deleteNote(${note.id})">Delete</button>
-      `;
-      notesDiv.appendChild(div);
-    });
-  }
+    async function loadNotes() {
+      messageEl.textContent = "";
+      notesDiv.innerHTML = "";
 
-  async function deleteNote(id) {
-    const res = await fetch("/api/admin/notes/" + id, {
-      method: "DELETE",
-      headers: { "x-admin-password": passwordInput.value }
-    });
-    loadNotes();
-  }
+      const res = await fetch("/api/admin/notes", {
+        headers: { "x-admin-password": passwordInput.value }
+      });
 
-  async function clearNotes() {
-    const res = await fetch("/api/admin/clear", {
-      method: "DELETE",
-      headers: { "x-admin-password": passwordInput.value }
-    });
-    loadNotes();
-  }
+      const data = await res.json();
 
-  document.getElementById("loadBtn").onclick = loadNotes;
-  document.getElementById("clearBtn").onclick = clearNotes;
-</script>
+      if (!data.success) {
+        showMessage(data.message || "Wrong password", "error");
+        return;
+      }
 
+      if (data.notes.length === 0) {
+        notesDiv.innerHTML = "<p class='empty'>No notes</p>";
+        return;
+      }
+
+      data.notes.forEach(note => {
+        const div = document.createElement("div");
+        div.className = "note";
+        div.innerHTML = `
+          <div class="note-meta">
+            <span>${note.author || "Anonymous"}</span>
+            <button onclick="deleteNote(${note.id})">Delete</button>
+          </div>
+          <div class="note-content">${note.content}</div>
+        `;
+        notesDiv.appendChild(div);
+      });
+    }
+
+    async function deleteNote(id) {
+      const res = await fetch("/api/admin/notes/" + id, {
+        method: "DELETE",
+        headers: { "x-admin-password": passwordInput.value }
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showMessage("Note deleted successfully");
+        loadNotes();
+      } else {
+        showMessage(data.message || "Failed to delete note", "error");
+      }
+    }
+
+    async function clearNotes() {
+      if (!confirm("Delete ALL notes?")) return;
+
+      const res = await fetch("/api/admin/clear", {
+        method: "DELETE",
+        headers: { "x-admin-password": passwordInput.value }
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showMessage("All notes deleted successfully");
+        notesDiv.innerHTML = "";
+      } else {
+        showMessage(data.message || "Failed to clear notes", "error");
+      }
+    }
+
+    document.getElementById("loadBtn").onclick = loadNotes;
+    document.getElementById("clearBtn").onclick = clearNotes;
+  </script>
 </body>
 </html>

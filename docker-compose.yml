@@ -11,6 +11,7 @@ services:
       - db_data:/app/data
     restart: unless-stopped
 
+
   cron:
     build:
       context: .
@@ -24,6 +25,7 @@ services:
 
   nginx:
     image: nginx:alpine
+    container_name: nginx
     ports:
       - "80:80"
       - "443:443"
@@ -34,6 +36,7 @@ services:
       - certbot-var:/var/lib/letsencrypt
     depends_on:
       - app
+    restart: unless-stopped
 
   certbot:
     image: certbot/certbot
